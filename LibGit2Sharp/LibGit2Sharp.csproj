@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>LibGit2Sharp brings all the might and speed of libgit2, a native Git implementation, to the managed world of .NET</Description>
     <Company>LibGit2Sharp contributors</Company>
@@ -41,6 +41,12 @@
   <Target Name="SetNuSpecProperties" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
     <PropertyGroup>
       <PackageReleaseNotes>https://github.com/libgit2/libgit2sharp/blob/$(GitCommitIdShort)/CHANGES.md#libgit2sharp-changes</PackageReleaseNotes>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="OverrideVersion" AfterTargets="GetBuildVersion" Condition="'$(OverridePackageVersion)'!=''">
+    <PropertyGroup>
+      <PackageVersion>$(OverridePackageVersion)</PackageVersion>
     </PropertyGroup>
   </Target>
 
