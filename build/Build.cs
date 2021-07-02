@@ -80,7 +80,6 @@ class Build : NukeBuild
             DotNetPack(s => s
                 .SetProject(Solution)
                 .SetConfiguration(Configuration)
-                .SetOutputDirectory(ArtifactsDirectory)
                 .SetRunCodeAnalysis(false)
                 .SetIncludeSymbols(false)
                 .SetNoBuild(true)
