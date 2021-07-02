@@ -66,7 +66,7 @@ class Build : NukeBuild
             DotNetTest(s => s
                 .SetProjectFile(Solution)
                 .SetConfiguration(Configuration)
-                .SetFramework("netcoreapp2.1")  // Dont bother building for full framework
+                //.SetFramework("netcoreapp3.1")  // Dont bother building for full framework
                 .SetNoBuild(true)
                 .SetFilter("TestCategory!=FailsInCloudTest & TestCategory!=FailsWhileInstrumented")
                 .EnableNoRestore());
