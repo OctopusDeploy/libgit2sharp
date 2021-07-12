@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -46,6 +47,13 @@ namespace LibGit2Sharp.Core
         private class ManagedHttpSmartSubtransportStream : SmartSubtransportStream
         {
             private static int MAX_REDIRECTS = 7;
+
+            private static readonly IReadOnlyDictionary<Type, string[]> SUPPORTED_SCHEMES_FOR_CREDENTIALS =
+                new Dictionary<Type, string[]>
+                {
+                    { typeof(DefaultCredentials), new[] { "Negotiate" } },
+                    { typeof(UsernamePasswordCredentials), new[] { "NTLM", "Basic" } }
+                };
 
 #if NETCOREAPP
             private static readonly SocketsHttpHandler httpHandler;
@@ -189,20 +197,14 @@ namespace LibGit2Sharp.Core
                                 throw new InvalidOperationException("authentication cancelled");
                             }
 
-                            var scheme = response.Headers.WwwAuthenticate.First().Scheme;
-
-                            if (cred is DefaultCredentials)
+                            foreach (var authenticationHeader in response.Headers.WwwAuthenticate)
                             {
-                                lock (credentialCache)
+                                if (CredentialsAreValidForScheme(cred, authenticationHeader.Scheme, out var networkCredential))
                                 {
-                                    credentialCache.Add(url, scheme, CredentialCache.DefaultNetworkCredentials);
-                                }
-                            }
-                            else if (cred is UsernamePasswordCredentials userpass)
-                            {
-                                lock (credentialCache)
-                                {
-                                    credentialCache.Add(url, scheme, new NetworkCredential(userpass.Username, userpass.Password));
+                                    lock (credentialCache)
+                                    {
+                                        credentialCache.Add(url, authenticationHeader.Scheme, networkCredential);
+                                    }
                                 }
                             }
 
@@ -219,6 +221,35 @@ namespace LibGit2Sharp.Core
                 }
 
                 throw new Exception("too many redirects or authentication replays");
+            }
+
+            bool IsSupportedAuth<T>(Credentials credentials, string scheme, out T typedCredentials) where T : Credentials
+            {
+                if (credentials is T innerTypedCredentials && SUPPORTED_SCHEMES_FOR_CREDENTIALS.TryGetValue(typeof(T), out var schemes) &&
+                    schemes.Contains(scheme, StringComparer.InvariantCultureIgnoreCase))
+                {
+                    typedCredentials = innerTypedCredentials;
+                    return true;
+                }
+
+                typedCredentials = null;
+                return false;
+            }
+
+            bool CredentialsAreValidForScheme(Credentials credentials, string scheme, out NetworkCredential networkCredential)
+            {
+                networkCredential = null;
+
+                if (IsSupportedAuth<DefaultCredentials>(credentials, scheme, out _))
+                {
+                    networkCredential = CredentialCache.DefaultNetworkCredentials;
+                }
+                else if (IsSupportedAuth<UsernamePasswordCredentials>(credentials, scheme, out var usernamePasswordCredentials))
+                {
+                    networkCredential = new NetworkCredential(usernamePasswordCredentials.Username, usernamePasswordCredentials.Password);
+                }
+
+                return networkCredential != null;
             }
 
             public override int Read(Stream dataStream, long length, out long readTotal)
