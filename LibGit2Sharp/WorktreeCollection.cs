@@ -48,7 +48,43 @@ namespace LibGit2Sharp
         }
 
         /// <summary>
-        /// 
+        ///
+        /// </summary>
+        /// <param name="branch"></param>
+        /// <param name="name"></param>
+        /// <param name="path"></param>
+        /// <param name="isLocked"></param>
+        /// <returns></returns>
+        public virtual Worktree Add(Branch branch, string name, string path, bool isLocked)
+        {
+            git_worktree_add_options options = new git_worktree_add_options
+            {
+                version = 1,
+                locked = Convert.ToInt32(isLocked)
+            };
+
+            // Proxy.git_worktree_add() can take a branch reference to create the branch for. This will correctly check
+            // out the tracked branch (rather than being in a detached head state).
+
+            Worktree worktree;
+            using (var referencePtr = repo.Refs.RetrieveReferencePtr(branch.CanonicalName))
+            {
+                options.@ref = referencePtr?.AsIntPtr() ?? options.@ref;
+
+                using (var handle = Proxy.git_worktree_add(repo.Handle, name, path, options))
+                {
+                    worktree = new Worktree(
+                        repo,
+                        name,
+                        Proxy.git_worktree_is_locked(handle));
+                }
+            }
+
+            return worktree;
+        }
+
+        /// <summary>
+        ///
         /// </summary>
         /// <param name="committishOrBranchSpec"></param>
         /// <param name="name"></param>
@@ -72,9 +108,9 @@ namespace LibGit2Sharp
             using (var handle = Proxy.git_worktree_add(repo.Handle, name, path, options))
             {
                 var worktree = new Worktree(
-                      repo,
-                      name,
-                      Proxy.git_worktree_is_locked(handle));
+                    repo,
+                    name,
+                    Proxy.git_worktree_is_locked(handle));
 
                 // switch the worktree to the target branch
                 using (var repository = worktree.WorktreeRepository)
@@ -83,9 +119,9 @@ namespace LibGit2Sharp
                 }
             }
 
-            
 
-            return this[name]; 
+
+            return this[name];
         }
 
         /// <summary>
