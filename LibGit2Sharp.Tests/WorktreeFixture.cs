@@ -273,8 +273,10 @@ namespace LibGit2Sharp.Tests
             }
         }
 
-        [Fact]
-        public void CanAddWorktreeForCommittish()
+        [Theory]
+        [InlineData("diff-test-cases", "refs/heads/diff-test-cases")] // Branch
+        [InlineData("refs/heads/diff-test-cases", "refs/heads/diff-test-cases")] // Canonical branch
+        public void CanAddWorktreeForBranchCommittish(string branchCommittish, string expectedCanonicalName)
         {
             var repoPath = SandboxWorktreeTestRepo();
             using (var repo = new Repository(repoPath))
@@ -282,15 +284,143 @@ namespace LibGit2Sharp.Tests
                 Assert.Equal(2, repo.Worktrees.Count());
 
                 var name = "blah";
-                var committish = "diff-test-cases";
                 var path = Path.Combine(repo.Info.WorkingDirectory, "..", "worktrees", name);
-                var worktree = repo.Worktrees.Add(committish, name, path, false);
+                var worktree = repo.Worktrees.Add(branchCommittish, name, path, false);
                 Assert.Equal(name, worktree.Name);
                 Assert.False(worktree.IsLocked);
                 using (var repository = worktree.WorktreeRepository)
                 {
-                    Assert.Equal(committish, repository.Head.FriendlyName);
+                    Assert.Equal(expectedCanonicalName, repository.Head.CanonicalName);
                 }
+
+                Assert.Equal(3, repo.Worktrees.Count());
+            }
+        }
+
+        [Fact]
+        public void CanAddWorktreeForRemoteBranchCommittish()
+        {
+            var repoPath = SandboxWorktreeTestRepo();
+            using (var repo = new Repository(repoPath))
+            {
+                Assert.Equal(2, repo.Worktrees.Count());
+
+                var name = "blah";
+                var path = Path.Combine(repo.Info.WorkingDirectory, "..", "worktrees", name);
+                var worktree = repo.Worktrees.Add("refs/remotes/origin/master", name, path, false);
+                Assert.Equal(name, worktree.Name);
+                Assert.False(worktree.IsLocked);
+                using (var repository = worktree.WorktreeRepository)
+                {
+                    var expectedBranch = repo.Branches["refs/remotes/origin/master"];
+                    Assert.Equal(expectedBranch.Tip.Sha, repository.Head.Tip.Sha);
+                    Assert.True(repository.Info.IsHeadDetached);
+                }
+
+                Assert.Equal(3, repo.Worktrees.Count());
+            }
+        }
+
+        [Theory]
+        [InlineData("lw")] // Tag
+        [InlineData("refs/tags/lw")] // Canonical tag
+        public void CanAddWorktreeForTagCommittish(string tagCommittish)
+        {
+            var repoPath = SandboxWorktreeTestRepo();
+            using (var repo = new Repository(repoPath))
+            {
+                Assert.Equal(2, repo.Worktrees.Count());
+
+                var name = "blah";
+                var path = Path.Combine(repo.Info.WorkingDirectory, "..", "worktrees", name);
+                var worktree = repo.Worktrees.Add(tagCommittish, name, path, false);
+                Assert.Equal(name, worktree.Name);
+                Assert.False(worktree.IsLocked);
+                using (var repository = worktree.WorktreeRepository)
+                {
+                    var expectedTag = repo.Tags["refs/tags/lw"];
+                    Assert.Equal(expectedTag.Target.Sha, repository.Head.Tip.Sha);
+                    Assert.True(repository.Info.IsHeadDetached);
+                }
+
+                Assert.Equal(3, repo.Worktrees.Count());
+            }
+        }
+
+        [Theory]
+        [InlineData("8496071", "8496071")] // Short commit SHA
+        [InlineData("8496071c1b46c854b31185ea97743be6a8774479", "8496071")] // Long commit SHA
+        public void CanAddWorktreeForCommitCommittish(string commitCommittish, string expectedHashStart)
+        {
+            var repoPath = SandboxWorktreeTestRepo();
+            using (var repo = new Repository(repoPath))
+            {
+                Assert.Equal(2, repo.Worktrees.Count());
+
+                var name = "blah";
+                var path = Path.Combine(repo.Info.WorkingDirectory, "..", "worktrees", name);
+                var worktree = repo.Worktrees.Add(commitCommittish, name, path, false);
+                Assert.Equal(name, worktree.Name);
+                Assert.False(worktree.IsLocked);
+                using (var repository = worktree.WorktreeRepository)
+                {
+                    Assert.StartsWith(expectedHashStart, repository.Head.Tip.Sha);
+                }
+
+                Assert.Equal(3, repo.Worktrees.Count());
+            }
+        }
+
+        [Fact]
+        public void CanAddWorktreeForBranch()
+        {
+            var repoPath = SandboxWorktreeTestRepo();
+            using (var repo = new Repository(repoPath))
+            {
+                Assert.Equal(2, repo.Worktrees.Count());
+
+                var worktreeName = "some-other-name-that-is-not-the-branch-were-checking-out";
+                var branch = repo.Branches["diff-test-cases"];
+
+                var path = Path.Combine(repo.Info.WorkingDirectory, "..", "worktrees", worktreeName);
+                var worktree = repo.Worktrees.Add(branch, worktreeName, path, false);
+                Assert.Equal(worktreeName, worktree.Name);
+                Assert.False(worktree.IsLocked);
+
+                using (var repository = worktree.WorktreeRepository)
+                {
+                    Assert.Equal("refs/heads/diff-test-cases", repository.Head.CanonicalName);
+                    Assert.False(repository.Info.IsHeadDetached);
+                }
+
+                Assert.Equal(3, repo.Worktrees.Count());
+            }
+        }
+
+        [Fact]
+        public void CanAddWorktreeForBranchWithSameNameAsBranch()
+        {
+            // Because we're passing the branch ref in the options for Proxy.git_worktree_add(), libgit2 shouldn't
+            // create a branch for the worktree name.
+            var repoPath = SandboxWorktreeTestRepo();
+            using (var repo = new Repository(repoPath))
+            {
+                Assert.Equal(2, repo.Worktrees.Count());
+
+                var branchName = "diff-test-cases";
+                var branch = repo.Branches[branchName];
+
+                var path = Path.Combine(repo.Info.WorkingDirectory, "..", "worktrees", branchName);
+                var worktree = repo.Worktrees.Add(branch, branchName, path, false);
+                Assert.Equal(branchName, worktree.Name);
+                Assert.False(worktree.IsLocked);
+
+                using (var repository = worktree.WorktreeRepository)
+                {
+                    Assert.Equal("refs/heads/diff-test-cases", repository.Head.CanonicalName);
+                    Assert.False(repository.Info.IsHeadDetached);
+                }
+
                 Assert.Equal(3, repo.Worktrees.Count());
             }
         }
