@@ -490,12 +490,13 @@ namespace LibGit2Sharp
         /// </summary>
         /// <param name="path">The path to the working folder when initializing a standard ".git" repository. Otherwise, when initializing a bare repository, the path to the expected location of this later.</param>
         /// <param name="isBare">true to initialize a bare repository. False otherwise, to initialize a standard ".git" repository.</param>
+        /// <param name="options">Additional optional parameters to be passed to the Init invocation</param>
         /// <returns>The path to the created repository.</returns>
-        public static string Init(string path, bool isBare)
+        public static string Init(string path, bool isBare, InitOptions options = null)
         {
             Ensure.ArgumentNotNullOrEmptyString(path, "path");
 
-            using (RepositoryHandle repo = Proxy.git_repository_init_ext(null, path, isBare))
+            using (RepositoryHandle repo = Proxy.git_repository_init_ext(null, path, isBare, options?.InitialHead))
             {
                 FilePath repoPath = Proxy.git_repository_path(repo);
                 return repoPath.Native;
@@ -507,8 +508,9 @@ namespace LibGit2Sharp
         /// </summary>
         /// <param name="workingDirectoryPath">The path to the working directory.</param>
         /// <param name="gitDirectoryPath">The path to the git repository to be created.</param>
+        /// <param name="options">Additional optional parameters to be passed to the Init invocation</param>
         /// <returns>The path to the created repository.</returns>
-        public static string Init(string workingDirectoryPath, string gitDirectoryPath)
+        public static string Init(string workingDirectoryPath, string gitDirectoryPath, InitOptions options = null)
         {
             Ensure.ArgumentNotNullOrEmptyString(workingDirectoryPath, "workingDirectoryPath");
             Ensure.ArgumentNotNullOrEmptyString(gitDirectoryPath, "gitDirectoryPath");
@@ -520,7 +522,7 @@ namespace LibGit2Sharp
 
             // TODO: Shouldn't we ensure that the working folder isn't under the gitDir?
 
-            using (RepositoryHandle repo = Proxy.git_repository_init_ext(wd, gitDirectoryPath, false))
+            using (RepositoryHandle repo = Proxy.git_repository_init_ext(wd, gitDirectoryPath, false, options?.InitialHead))
             {
                 FilePath repoPath = Proxy.git_repository_path(repo);
                 return repoPath.Native;
@@ -1050,7 +1052,7 @@ namespace LibGit2Sharp
 
                 if (treesame && !amendMergeCommit)
                 {
-                    throw (options.AmendPreviousCommit ? 
+                    throw (options.AmendPreviousCommit ?
                         new EmptyCommitException("Amending this commit would produce a commit that is identical to its parent (id = {0})", parents[0].Id) :
                         new EmptyCommitException("No changes; nothing to commit."));
                 }
@@ -1241,7 +1243,7 @@ namespace LibGit2Sharp
             if (fetchHeads.Length == 0)
             {
                 var expectedRef = this.Head.UpstreamBranchCanonicalName;
-                throw new MergeFetchHeadNotFoundException("The current branch is configured to merge with the reference '{0}' from the remote, but this reference was not fetched.", 
+                throw new MergeFetchHeadNotFoundException("The current branch is configured to merge with the reference '{0}' from the remote, but this reference was not fetched.",
                     expectedRef);
             }
 
