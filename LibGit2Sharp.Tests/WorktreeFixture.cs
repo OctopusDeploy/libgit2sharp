@@ -424,5 +424,29 @@ namespace LibGit2Sharp.Tests
                 Assert.Equal(3, repo.Worktrees.Count());
             }
         }
+
+        [Fact]
+        public void CanAddWorktreeNoCheckout()
+        {
+            var repoPath = SandboxWorktreeTestRepo();
+            using (var repo = new Repository(repoPath))
+            {
+                Assert.Equal(2, repo.Worktrees.Count());
+
+                var name = "blah";
+                var path = Path.Combine(repo.Info.WorkingDirectory, "..", "worktrees", name);
+                var worktree = repo.Worktrees.Add(name, path, false, false);
+                Assert.Equal(name, worktree.Name);
+                Assert.False(worktree.IsLocked);
+
+                using (var repository = worktree.WorktreeRepository)
+                {
+                    // Should only have the ".git" file
+                    Assert.Single(Directory.EnumerateFiles(repository.Info.WorkingDirectory));
+                }
+
+                Assert.Equal(3, repo.Worktrees.Count());
+            }
+        }
     }
 }

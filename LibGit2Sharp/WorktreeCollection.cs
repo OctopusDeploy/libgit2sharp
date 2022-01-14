@@ -4,9 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace LibGit2Sharp
 {
@@ -54,12 +52,20 @@ namespace LibGit2Sharp
         /// <param name="name"></param>
         /// <param name="path"></param>
         /// <param name="isLocked"></param>
+        /// <param name="checkout"></param>
         /// <returns></returns>
-        public virtual Worktree Add(Branch branch, string name, string path, bool isLocked)
+        public virtual Worktree Add(Branch branch, string name, string path, bool isLocked, bool checkout = true)
         {
             git_worktree_add_options options = new git_worktree_add_options
             {
                 version = 1,
+                checkout_options = new GitCheckoutOpts
+                {
+                    version = 1,
+                    checkout_strategy = checkout ?
+                        CheckoutStrategy.GIT_CHECKOUT_FORCE :
+                        CheckoutStrategy.GIT_CHECKOUT_NONE
+                },
                 locked = Convert.ToInt32(isLocked)
             };
 
@@ -90,8 +96,14 @@ namespace LibGit2Sharp
         /// <param name="name"></param>
         /// <param name="path"></param>
         /// <param name="isLocked"></param>
+        /// <param name="checkout"></param>
         /// <returns></returns>
-        public virtual Worktree Add(string committishOrBranchSpec, string name, string path, bool isLocked)
+        public virtual Worktree Add(
+            string committishOrBranchSpec,
+            string name,
+            string path,
+            bool isLocked,
+            bool checkout = true)
         {
             if(string.Equals(committishOrBranchSpec, name))
             {
@@ -102,6 +114,13 @@ namespace LibGit2Sharp
             git_worktree_add_options options = new git_worktree_add_options
             {
                 version = 1,
+                checkout_options = new GitCheckoutOpts
+                {
+                    version = 1,
+                    checkout_strategy = checkout ?
+                        CheckoutStrategy.GIT_CHECKOUT_FORCE :
+                        CheckoutStrategy.GIT_CHECKOUT_NONE
+                },
                 locked = Convert.ToInt32(isLocked)
             };
 
@@ -119,22 +138,30 @@ namespace LibGit2Sharp
                 }
             }
 
-            
 
-            return this[name]; 
+
+            return this[name];
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="name"></param>
         /// <param name="path"></param>
         /// <param name="isLocked"></param>
-        public virtual Worktree Add(string name, string path, bool isLocked)
+        /// <param name="checkout"></param>
+        public virtual Worktree Add(string name, string path, bool isLocked, bool checkout = true)
         {
             git_worktree_add_options options = new git_worktree_add_options
             {
                 version = 1,
+                checkout_options = new GitCheckoutOpts
+                {
+                    version = 1,
+                    checkout_strategy = checkout ?
+                        CheckoutStrategy.GIT_CHECKOUT_FORCE :
+                        CheckoutStrategy.GIT_CHECKOUT_NONE
+                },
                 locked = Convert.ToInt32(isLocked)
             };
 
@@ -148,7 +175,7 @@ namespace LibGit2Sharp
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="worktree"></param>
         /// <returns></returns>
@@ -158,7 +185,7 @@ namespace LibGit2Sharp
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="worktree"></param>
         /// <param name="ifLocked"></param>
