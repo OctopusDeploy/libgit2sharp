@@ -52,9 +52,20 @@ namespace LibGit2Sharp
         /// <param name="name"></param>
         /// <param name="path"></param>
         /// <param name="isLocked"></param>
+        /// <returns></returns>
+        public virtual Worktree Add(Branch branch, string name, string path, bool isLocked)
+            => Add(branch, name, path, isLocked, true);
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="branch"></param>
+        /// <param name="name"></param>
+        /// <param name="path"></param>
+        /// <param name="isLocked"></param>
         /// <param name="checkout"></param>
         /// <returns></returns>
-        public virtual Worktree Add(Branch branch, string name, string path, bool isLocked, bool checkout = true)
+        public virtual Worktree Add(Branch branch, string name, string path, bool isLocked, bool checkout)
         {
             git_worktree_add_options options = new git_worktree_add_options
             {
@@ -96,6 +107,21 @@ namespace LibGit2Sharp
         /// <param name="name"></param>
         /// <param name="path"></param>
         /// <param name="isLocked"></param>
+        /// <returns></returns>
+        public virtual Worktree Add(
+            string committishOrBranchSpec,
+            string name,
+            string path,
+            bool isLocked) =>
+            Add(committishOrBranchSpec, name, path, isLocked, true);
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="committishOrBranchSpec"></param>
+        /// <param name="name"></param>
+        /// <param name="path"></param>
+        /// <param name="isLocked"></param>
         /// <param name="checkout"></param>
         /// <returns></returns>
         public virtual Worktree Add(
@@ -103,7 +129,7 @@ namespace LibGit2Sharp
             string name,
             string path,
             bool isLocked,
-            bool checkout = true)
+            bool checkout)
         {
             if(string.Equals(committishOrBranchSpec, name))
             {
@@ -149,8 +175,16 @@ namespace LibGit2Sharp
         /// <param name="name"></param>
         /// <param name="path"></param>
         /// <param name="isLocked"></param>
+        public virtual Worktree Add(string name, string path, bool isLocked) => Add(name, path, isLocked, true);
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="path"></param>
+        /// <param name="isLocked"></param>
         /// <param name="checkout"></param>
-        public virtual Worktree Add(string name, string path, bool isLocked, bool checkout = true)
+        public virtual Worktree Add(string name, string path, bool isLocked, bool checkout)
         {
             git_worktree_add_options options = new git_worktree_add_options
             {
