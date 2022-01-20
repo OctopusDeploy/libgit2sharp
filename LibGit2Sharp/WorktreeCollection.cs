@@ -158,13 +158,14 @@ namespace LibGit2Sharp
                       Proxy.git_worktree_is_locked(handle));
 
                 // switch the worktree to the target branch
-                using (var repository = worktree.WorktreeRepository)
+                if (checkout)
                 {
-                    Commands.Checkout(repository, committishOrBranchSpec);
+                    using (var repository = worktree.WorktreeRepository)
+                    {
+                        Commands.Checkout(repository, committishOrBranchSpec);
+                    }
                 }
             }
-
-
 
             return this[name];
         }
