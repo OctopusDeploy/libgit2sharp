@@ -96,6 +96,7 @@ class Build : NukeBuild
                 .SetConfiguration(Configuration)
                 .SetRunCodeAnalysis(false)
                 .SetIncludeSymbols(false)
+                .SetPackageId("Octopus.LibGit2Sharp")
                 .SetNoBuild(true)
             );
         });
