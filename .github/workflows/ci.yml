@@ -36,10 +36,10 @@ jobs:
     strategy:
       matrix:
         arch: [ amd64 ]
-        os: [windows-2019, macos-10.15]
+        os: [windows-2019, macos-latest]
         tfm: [ net472, net6.0 ]
         exclude:
-          - os: macos-10.15
+          - os: macos-latest
             tfm: net472
       fail-fast: false
     steps:
