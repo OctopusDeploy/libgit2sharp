@@ -10,7 +10,7 @@ using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
 [CheckBuildProjectConfigurations]
-// [ShutdownDotNetAfterServerBuild]
+[ShutdownDotNetAfterServerBuild]
 class Build : NukeBuild
 {
     /// Support plugins are available for:
