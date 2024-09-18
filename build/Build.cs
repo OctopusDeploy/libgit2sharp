@@ -61,19 +61,6 @@ class Build : NukeBuild
                 .EnableNoRestore());
         });
 
-    // Target TestNetCoreApp31 => _ => _
-    //     .DependsOn(Compile)
-    //     .Executes(() =>
-    //     {
-    //         DotNetTest(s => s
-    //             .SetProjectFile(Solution)
-    //             .SetConfiguration(Configuration)
-    //             .SetFramework("netcoreapp3.1")  // Dont bother building for full framework
-    //             .SetNoBuild(true)
-    //             .SetFilter("TestCategory!=FailsInCloudTest & TestCategory!=FailsWhileInstrumented")
-    //             .EnableNoRestore());
-    //     });
-
     Target TestNet6 => _ => _
         .DependsOn(Compile)
         .Executes(() =>
@@ -89,7 +76,6 @@ class Build : NukeBuild
 
     Target Pack => _ => _
         .DependsOn(Compile)
-        // .DependsOn(TestNetCoreApp31)
         .DependsOn(TestNet6)
         .Executes(() =>
         {
