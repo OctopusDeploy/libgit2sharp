@@ -37,7 +37,7 @@ jobs:
             matrix:
                 arch: [amd64]
                 os: [windows-2019, macos-10.15]
-                tfm: [net472, netcoreapp3.1, net6.0]
+                tfm: [net472, net8.0]
                 exclude:
                     - os: macos-10.15
                       tfm: net472
@@ -50,12 +50,7 @@ jobs:
             - name: Install .NET SDK
               uses: actions/setup-dotnet@v1.8.1
               with:
-                  dotnet-version: 6.0.x
-            - name: Install .NET Core 3.1 runtime
-              if: matrix.tfm == 'netcoreapp3.1'
-              uses: actions/setup-dotnet@v1.8.1
-              with:
-                  dotnet-version: 3.1.x
+                  dotnet-version: 8.0.x
             - name: Run ${{ matrix.tfm }} tests
               run: dotnet test LibGit2Sharp.sln --configuration Release --framework ${{ matrix.tfm }} --logger "GitHubActions" /p:ExtraDefine=LEAKS_IDENTIFYING
     test-linux:
