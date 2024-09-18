@@ -21,7 +21,7 @@ jobs:
             - name: Install .NET SDK
               uses: actions/setup-dotnet@v1.8.1
               with:
-                  dotnet-version: 6.0.x
+                  dotnet-version: 8.0.x
             - name: Build
               run: dotnet build LibGit2Sharp.sln --configuration Release
             - name: Upload packages
@@ -37,7 +37,7 @@ jobs:
             matrix:
                 arch: [amd64]
                 os: [windows-2019, macos-latest]
-                tfm: [net472, net6.0]
+                tfm: [net472, net8.0]
                 exclude:
                     - os: macos-latest
                       tfm: net472
@@ -50,7 +50,7 @@ jobs:
             - name: Install .NET SDK
               uses: actions/setup-dotnet@v1.8.1
               with:
-                  dotnet-version: 6.0.x
+                  dotnet-version: 8.0.x
             - name: Run ${{ matrix.tfm }} tests
               run: dotnet test LibGit2Sharp.sln --configuration Release --framework ${{ matrix.tfm }} --logger "GitHubActions" /p:ExtraDefine=LEAKS_IDENTIFYING
     test-linux:
@@ -74,7 +74,7 @@ jobs:
                         ubuntu.18.04,
                         ubuntu.20.04,
                     ]
-                sdk: ["6.0"]
+                sdk: ["8.0"]
                 exclude:
                     - arch: arm64
                       distro: alpine.3.12
@@ -85,8 +85,8 @@ jobs:
                     - arch: arm64
                       distro: centos.7
                 include:
-                    - sdk: "6.0"
-                      tfm: net6.0
+                    - sdk: "8.0"
+                      tfm: net8.0
             fail-fast: false
         steps:
             - name: Checkout
