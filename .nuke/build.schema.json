@@ -83,8 +83,7 @@
               "Compile",
               "Pack",
               "Restore",
-              "TestNet6",
-              "TestNetCoreApp31"
+              "TestNet6"
             ]
           }
         },
@@ -102,8 +101,7 @@
               "Compile",
               "Pack",
               "Restore",
-              "TestNet6",
-              "TestNetCoreApp31"
+              "TestNet6"
             ]
           }
         },
