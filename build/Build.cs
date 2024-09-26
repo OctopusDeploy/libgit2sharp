@@ -32,8 +32,8 @@ class Build : NukeBuild
         "Whether to auto-detect the branch name - this is okay for a local build, but should not be used under CI.")]
     readonly bool AutoDetectBranch = IsLocalBuild;
 
-    [OctoVersion(UpdateBuildNumber = true, BranchParameter = nameof(BranchName),
-        AutoDetectBranchParameter = nameof(AutoDetectBranch), Framework = "net6.0")]
+    [OctoVersion(UpdateBuildNumber = true, BranchMember = nameof(BranchName),
+        AutoDetectBranchMember = nameof(AutoDetectBranch), Framework = "net8.0")]
     readonly OctoVersionInfo OctoVersionInfo;
 
     // For outline of original build process used by original source repository, check ./azure-pipelines/dotnet.yml
@@ -61,14 +61,14 @@ class Build : NukeBuild
                 .EnableNoRestore());
         });
 
-    Target TestNet6 => _ => _
+    Target TestNet8 => _ => _
         .DependsOn(Compile)
         .Executes(() =>
         {
             DotNetTest(s => s
                 .SetProjectFile(Solution)
                 .SetConfiguration(Configuration)
-                .SetFramework("net6.0") // Dont bother building for full framework
+                .SetFramework("net8.0") // Dont bother building for full framework
                 .SetNoBuild(true)
                 .SetFilter("TestCategory!=FailsInCloudTest & TestCategory!=FailsWhileInstrumented")
                 .EnableNoRestore());
@@ -76,7 +76,7 @@ class Build : NukeBuild
 
     Target Pack => _ => _
         .DependsOn(Compile)
-        .DependsOn(TestNet6)
+        .DependsOn(TestNet8)
         .Executes(() =>
         {
             DotNetPack(s => s
