@@ -19,8 +19,9 @@
     <PackageReadmeFile>App_Readme/README.md</PackageReadmeFile>
     <PackageLicenseFile>App_Readme/LICENSE.md</PackageLicenseFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>Octopus.LibGit2Sharp</PackageId>
     <PackageOutputPath>$(ArtifactsPath)\package</PackageOutputPath>
-    <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
+    <MinVerDefaultPreReleaseIdentifiers>octopus.0</MinVerDefaultPreReleaseIdentifiers>
     <MinVerBuildMetadata Condition="'$(libgit2_hash)' != ''">libgit2-$(libgit2_hash.Substring(0,7))</MinVerBuildMetadata>
   </PropertyGroup>
 
