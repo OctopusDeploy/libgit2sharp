@@ -32,6 +32,7 @@ jobs:
           retention-days: 7
       - name: Verify trimming compatibility
         run: dotnet publish TrimmingTestApp
+
   test:
     name: Test / ${{ matrix.os }} / ${{ matrix.arch }} / ${{ matrix.tfm }}
     runs-on: ${{ matrix.os }}
@@ -116,3 +117,20 @@ jobs:
             test_command="dotnet test LibGit2Sharp.sln --configuration Release -p:TargetFrameworks=${{ matrix.tfm }} --logger "GitHubActions" -p:ExtraDefine=LEAKS_IDENTIFYING"
             docker run -t --rm --platform linux/${{ matrix.arch }} -v "$PWD:/home/gittools/app" -w "/home/gittools/app" -e OPENSSL_ENABLE_SHA1_SIGNATURES=1 gittools/build-images:${{ matrix.distro }}-sdk-${{ matrix.sdk }} sh -c "$git_command && $test_command"
 
+  nuget-push:
+    name: Octopus NuGet Push
+    needs: [build, test, test-linux]
+    # &&  github.ref == 'refs/heads/octopus/master'
+    if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]' && github.event_name != 'schedule'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: staging
+      - name: Push package to feed 🐙
+        id: push-feed
+        shell: bash
+        env:
+          FEED_API_KEY: ${{ secrets.FEED_API_KEY }}
+          FEED_SOURCE: ${{ secrets.FEED_SOURCE }}
+        run: dotnet nuget push staging/**/*.nupkg --api-key "$FEED_API_KEY" --source "$FEED_SOURCE"
