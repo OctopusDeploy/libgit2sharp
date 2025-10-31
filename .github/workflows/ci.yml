@@ -65,6 +65,7 @@ jobs:
           dotnet-version: |
             9.0.x
             8.0.x
+            6.0.x
       - name: Run ${{ matrix.tfm }} tests
         run: dotnet test LibGit2Sharp.sln --configuration Release --framework ${{ matrix.tfm }} --logger "GitHubActions" /p:ExtraDefine=LEAKS_IDENTIFYING
   test-linux:
@@ -95,6 +96,8 @@ jobs:
           - distro: ubuntu.20.04
             sdk: '10.0'
         include:
+          - sdk: '6.0'
+            tfm: net6.0
           - sdk: '8.0'
             tfm: net8.0
           - sdk: '9.0'
