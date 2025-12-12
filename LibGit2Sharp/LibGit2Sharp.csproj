@@ -29,6 +29,10 @@
     <IsTrimmable>true</IsTrimmable>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(BUILD_IDENTITY)' != ''">
+    <MinVerDefaultPreReleaseIdentifiers>octopus-$(BUILD_IDENTITY)</MinVerDefaultPreReleaseIdentifiers>
+  </PropertyGroup> 
+
   <ItemGroup>
     <PackageReference Include="LibGit2Sharp.NativeBinaries" Version="[2.0.323]" PrivateAssets="none" />
     <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="all" />

@@ -7,6 +7,14 @@ on:
       - '[0-9]+.[0-9]+.[0-9]+-*'
   pull_request:
   workflow_dispatch:
+    inputs:
+      nightly:
+        description: 'Build as nightly version'
+        required: false
+        type: boolean
+        default: false
+  schedule:
+    - cron: '0 15 * * *'  # Run at 3 PM UTC (1 AM Melbourne AEST / 2 AM AEDT)
 env:
   DOTNET_NOLOGO: true
 jobs:
@@ -23,7 +31,22 @@ jobs:
         with:
           dotnet-version: 9.0.x
       - name: Build
-        run: dotnet build LibGit2Sharp.sln --configuration Release
+        run: |
+          # if it is a pull request build set the build identity to branchname.runnumber
+          if ("${{ github.event_name }}" -eq "pull_request" -and "${{ github.head_ref }}" -ne "") {
+            $branchName = "${{ github.head_ref }}" -replace '[/\\]', '-' -replace '[^a-zA-Z0-9\-]', ''
+            $buildIdentity = "$branchName.${{ github.run_number }}"
+            
+            $env:BUILD_IDENTITY = $buildIdentity
+          }
+          
+          # if it is a scheduled build set the build identity to nightly
+          if ("${{ github.event_name }}" -eq "schedule" -or "${{ inputs.nightly }}" -eq "true") {
+            $env:BUILD_IDENTITY = "nightly.${{ github.run_number }}"
+          }
+
+          dotnet build LibGit2Sharp.sln --configuration Release
+        shell: pwsh
       - name: Upload packages
         uses: actions/upload-artifact@v4.3.1
         with:
@@ -105,7 +128,7 @@ jobs:
     name: Octopus NuGet Push
     needs: [build, test, test-linux]
     # &&  github.ref == 'refs/heads/octopus/master'
-    if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]' && github.event_name != 'schedule'
+    if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/download-artifact@v4
