@@ -24,6 +24,9 @@ jobs:
           dotnet-version: 9.0.x
       - name: Build
         run: dotnet build LibGit2Sharp.sln --configuration Release
+        env:
+          MinVerDefaultPreReleaseIdentifiers: octopus.dylan
+          MinVerIgnoreHeight: true
       - name: Upload packages
         uses: actions/upload-artifact@v4.3.1
         with:
