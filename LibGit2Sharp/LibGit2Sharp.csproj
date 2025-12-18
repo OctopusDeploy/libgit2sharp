@@ -31,6 +31,7 @@
 
   <PropertyGroup Condition="'$(BUILD_IDENTITY)' != ''">
     <MinVerDefaultPreReleaseIdentifiers>octopus-$(BUILD_IDENTITY)</MinVerDefaultPreReleaseIdentifiers>
+    <MinVerIgnoreHeight>true</MinVerIgnoreHeight>
   </PropertyGroup> 
 
   <ItemGroup>
