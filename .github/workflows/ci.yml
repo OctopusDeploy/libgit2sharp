@@ -7,12 +7,6 @@ on:
       - '[0-9]+.[0-9]+.[0-9]+-*'
   pull_request:
   workflow_dispatch:
-    inputs:
-      nightly:
-        description: 'Build as nightly version'
-        required: false
-        type: boolean
-        default: false
   schedule:
     - cron: '0 15 * * *'  # Run at 3 PM UTC (1 AM Melbourne AEST / 2 AM AEDT)
 env:
@@ -35,13 +29,12 @@ jobs:
           # if it is a pull request build set the build identity to branchname.runnumber
           if ("${{ github.event_name }}" -eq "pull_request" -and "${{ github.head_ref }}" -ne "") {
             $branchName = "${{ github.head_ref }}" -replace '[/\\]', '-' -replace '[^a-zA-Z0-9\-]', ''
-            $buildIdentity = "$branchName.${{ github.run_number }}"
             
-            $env:BUILD_IDENTITY = $buildIdentity
+            $env:BUILD_IDENTITY = "$branchName.${{ github.run_number }}"
           }
           
           # if it is a scheduled build set the build identity to nightly
-          if ("${{ github.event_name }}" -eq "schedule" -or "${{ inputs.nightly }}" -eq "true") {
+          if ("${{ github.event_name }}" -eq "schedule") {
             $env:BUILD_IDENTITY = "nightly.${{ github.run_number }}"
           }
 
