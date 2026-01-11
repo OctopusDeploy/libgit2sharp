@@ -53,6 +53,11 @@ namespace LibGit2Sharp
         public PrePushHandler OnNegotiationCompletedBeforePush { get; set; }
 
         /// <summary>
+        /// Handler for receiving textual progress from the remote.
+        /// </summary>
+        public ProgressHandler OnPushRemoteProgress { get; set; }
+
+        /// <summary>
         /// Get/Set the custom headers.
         /// <para>
         /// This allows you to set custom headers (e.g. X-Forwarded-For,
