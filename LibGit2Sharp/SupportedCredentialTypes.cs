@@ -19,8 +19,14 @@ namespace LibGit2Sharp
         /// </summary>
         Default = (1 << 1),
 
+        /// <summary>
+        /// SSH key credentials sourced from files
+        /// </summary>
         SShKey = (1 << 2),
 
+        /// <summary>
+        /// SSH key credentials source from in memory keys
+        /// </summary>
         SSMemory = (1 << 3),
     }
 }
