@@ -30,7 +30,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="LibGit2Sharp.NativeBinaries" Version="[2.0.323]" PrivateAssets="none" />
+    <PackageReference Include="LibGit2Sharp.NativeBinaries" Version="[2.0.323-octopus.0-prelease.1]" PrivateAssets="none" />
     <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="all" />
   </ItemGroup>
 
