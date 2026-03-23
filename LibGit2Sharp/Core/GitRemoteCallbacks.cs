@@ -38,5 +38,7 @@ namespace LibGit2Sharp.Core
         internal IntPtr payload;
 
         internal NativeMethods.url_resolve_callback resolve_url;
+
+        internal IntPtr update_refs; // git_remote_update_ref_cb added in libgit2 v1.9
     }
 }
