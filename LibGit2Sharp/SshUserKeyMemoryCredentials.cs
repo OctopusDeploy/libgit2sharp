@@ -25,11 +25,6 @@ namespace LibGit2Sharp
                 throw new InvalidOperationException("SshUserKeyMemoryCredentials contains a null Passphrase.");
             }
 
-            if (PublicKey == null)
-            {
-                // TODO: Can this be null or do we need to derive from the private key?
-            }
-
             if (PrivateKey == null)
             {
                 throw new InvalidOperationException("SshUserKeyMemoryCredentials contains a null PrivateKey.");

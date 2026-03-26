@@ -307,7 +307,6 @@ namespace LibGit2Sharp
                 types |= SupportedCredentialTypes.SSMemory;
             }
 
-
             ptr = IntPtr.Zero;
             try
             {
