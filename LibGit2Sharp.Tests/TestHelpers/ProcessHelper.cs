@@ -28,6 +28,9 @@ namespace LibGit2Sharp.Tests
 
             process.Start();
 
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
             process.WaitForExit();
 
             return (output.ToString(), process.ExitCode);
