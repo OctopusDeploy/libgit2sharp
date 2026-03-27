@@ -1,122 +1,133 @@
 name: CI
 on:
-  push:
-    branches: [master, release-*]
-    tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
-      - '[0-9]+.[0-9]+.[0-9]+-*'
-  pull_request:
-  workflow_dispatch:
+    push:
+        branches: [master, release-*]
+        tags:
+            - "[0-9]+.[0-9]+.[0-9]+"
+            - "[0-9]+.[0-9]+.[0-9]+-*"
+    pull_request:
+    workflow_dispatch:
 env:
-  DOTNET_NOLOGO: true
+    DOTNET_NOLOGO: true
 jobs:
-  build:
-    name: Build
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-      - name: Install .NET SDK
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: 9.0.x
-      - name: Compute version suffix for branch builds
-        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
-        id: version
-        run: |
-          # Sanitize branch name: lowercase, replace non-alphanumeric with hyphen, trim to 20 chars
-          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
-          SAFE_BRANCH=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-20)
-          echo "override=octopus.${SAFE_BRANCH}.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
-      - name: Build
-        run: dotnet build LibGit2Sharp.sln --configuration Release ${{ steps.version.outputs.override && format('/p:MinVerDefaultPreReleaseIdentifiers="{0}"', steps.version.outputs.override) || '' }}
-      - name: Upload packages
-        uses: actions/upload-artifact@v7
-        with:
-          name: NuGet packages
-          path: artifacts/package/
-          retention-days: 7
-      - name: Verify trimming compatibility
-        run: dotnet publish TrimmingTestApp
+    build:
+        name: Build
+        runs-on: ubuntu-22.04
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+            - name: Install .NET SDK
+              uses: actions/setup-dotnet@v5
+              with:
+                  dotnet-version: 9.0.x
+            - name: Compute version suffix for branch builds
+              if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+              id: version
+              run: |
+                  # Sanitize branch name: lowercase, replace non-alphanumeric with hyphen, trim to 20 chars
+                  BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+                  SAFE_BRANCH=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-20)
+                  echo "override=${SAFE_BRANCH}.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+            - name: Build
+              run: dotnet build LibGit2Sharp.sln --configuration Release ${{ steps.version.outputs.override && format('/p:MinVerDefaultPreReleaseIdentifiers="{0}"', steps.version.outputs.override) || '' }}
+            - name: Upload packages
+              uses: actions/upload-artifact@v7
+              with:
+                  name: NuGet packages
+                  path: artifacts/package/
+                  retention-days: 7
+            - name: Verify trimming compatibility
+              run: dotnet publish TrimmingTestApp
 
-  test:
-    name: Test / ${{ matrix.os }} / ${{ matrix.arch }} / ${{ matrix.tfm }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        arch: [ x64 ]
-        os: [ windows-2022, macos-14 ]
-        tfm: [ net472, net8.0, net9.0 ]
-        exclude:
-          - os: macos-14
-            tfm: net472
-        include:
-          - arch: arm64
-            os: macos-14
-            tfm: net8.0
-          - arch: arm64
-            os: macos-14
-            tfm: net9.0
-      fail-fast: false
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-      - name: Install .NET SDK
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: |
-            9.0.x
-            8.0.x
-      - name: Run ${{ matrix.tfm }} tests
-        run: dotnet test LibGit2Sharp.sln --configuration Release --framework ${{ matrix.tfm }} --logger "GitHubActions" /p:ExtraDefine=LEAKS_IDENTIFYING
-  test-linux:
-    name: Test / ${{ matrix.distro }} / ${{ matrix.arch }} / ${{ matrix.tfm }}
-    runs-on: ${{ matrix.runnerImage }}
-    strategy:
-      matrix:
-        arch: [ amd64, arm64 ]
-        distro: [ alpine.3.20, alpine.3.21, alpine.3.22, centos.stream.9, debian.12, fedora.41, fedora.42, ubuntu.22.04, ubuntu.24.04 ]
-        sdk:  [ '8.0', '9.0' ]
-        include:
-          - sdk: '8.0'
-            tfm: net8.0
-          - sdk: '9.0'
-            tfm: net9.0
-          - arch: amd64
-            runnerImage: ubuntu-22.04
-          - arch: arm64
-            runnerImage: ubuntu-22.04-arm
-      fail-fast: false
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-      - name: Run ${{ matrix.tfm }} tests
-        run: |
-            git_command="git config --global --add safe.directory /app"
-            test_command="dotnet test LibGit2Sharp.sln --configuration Release -p:TargetFrameworks=${{ matrix.tfm }} --logger "GitHubActions" -p:ExtraDefine=LEAKS_IDENTIFYING"
-            docker run -t --rm --platform linux/${{ matrix.arch }} -v "$PWD:/app" -e OPENSSL_ENABLE_SHA1_SIGNATURES=1 gittools/build-images:${{ matrix.distro }}-sdk-${{ matrix.sdk }} sh -c "$git_command && $test_command"
+    test:
+        name: Test / ${{ matrix.os }} / ${{ matrix.arch }} / ${{ matrix.tfm }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                arch: [x64]
+                os: [windows-2022, macos-14]
+                tfm: [net472, net8.0, net9.0]
+                exclude:
+                    - os: macos-14
+                      tfm: net472
+                include:
+                    - arch: arm64
+                      os: macos-14
+                      tfm: net8.0
+                    - arch: arm64
+                      os: macos-14
+                      tfm: net9.0
+            fail-fast: false
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+            - name: Install .NET SDK
+              uses: actions/setup-dotnet@v5
+              with:
+                  dotnet-version: |
+                      9.0.x
+                      8.0.x
+            - name: Run ${{ matrix.tfm }} tests
+              run: dotnet test LibGit2Sharp.sln --configuration Release --framework ${{ matrix.tfm }} --logger "GitHubActions" /p:ExtraDefine=LEAKS_IDENTIFYING
+    test-linux:
+        name: Test / ${{ matrix.distro }} / ${{ matrix.arch }} / ${{ matrix.tfm }}
+        runs-on: ${{ matrix.runnerImage }}
+        strategy:
+            matrix:
+                arch: [amd64, arm64]
+                distro:
+                    [
+                        alpine.3.20,
+                        alpine.3.21,
+                        alpine.3.22,
+                        centos.stream.9,
+                        debian.12,
+                        fedora.41,
+                        fedora.42,
+                        ubuntu.22.04,
+                        ubuntu.24.04,
+                    ]
+                sdk: ["8.0", "9.0"]
+                include:
+                    - sdk: "8.0"
+                      tfm: net8.0
+                    - sdk: "9.0"
+                      tfm: net9.0
+                    - arch: amd64
+                      runnerImage: ubuntu-22.04
+                    - arch: arm64
+                      runnerImage: ubuntu-22.04-arm
+            fail-fast: false
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+            - name: Run ${{ matrix.tfm }} tests
+              run: |
+                  git_command="git config --global --add safe.directory /app"
+                  test_command="dotnet test LibGit2Sharp.sln --configuration Release -p:TargetFrameworks=${{ matrix.tfm }} --logger "GitHubActions" -p:ExtraDefine=LEAKS_IDENTIFYING"
+                  docker run -t --rm --platform linux/${{ matrix.arch }} -v "$PWD:/app" -e OPENSSL_ENABLE_SHA1_SIGNATURES=1 gittools/build-images:${{ matrix.distro }}-sdk-${{ matrix.sdk }} sh -c "$git_command && $test_command"
 
-  nuget-push:
-    name: Octopus NuGet Push
-    needs: [build, test, test-linux]
-    # &&  github.ref == 'refs/heads/octopus/master'
-    if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]' && github.event_name != 'schedule'
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/download-artifact@v8
+    nuget-push:
+        name: Octopus NuGet Push
+        needs: [build, test, test-linux]
+        # &&  github.ref == 'refs/heads/octopus/master'
+        if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]' && github.event_name != 'schedule'
+        runs-on: ubuntu-22.04
+        steps:
+            - uses: actions/download-artifact@v8
 
-        with:
-          path: staging
-      - name: Push package to feed 🐙
-        id: push-feed
-        shell: bash
-        env:
-          FEED_API_KEY: ${{ secrets.FEED_API_KEY }}
-          FEED_SOURCE: ${{ secrets.FEED_SOURCE }}
-        run: dotnet nuget push staging/**/*.nupkg --api-key "$FEED_API_KEY" --source "$FEED_SOURCE" --skip-duplicate
+              with:
+                  path: staging
+            - name: Push package to feed 🐙
+              id: push-feed
+              shell: bash
+              env:
+                  FEED_API_KEY: ${{ secrets.FEED_API_KEY }}
+                  FEED_SOURCE: ${{ secrets.FEED_SOURCE }}
+              run: dotnet nuget push staging/**/*.nupkg --api-key "$FEED_API_KEY" --source "$FEED_SOURCE" --skip-duplicate
