@@ -71,7 +71,10 @@ namespace LibGit2Sharp.Tests
             try
             {
                 Directory.CreateDirectory(platformDir);
-                File.Copy(Path.Combine(libraryPath, nativeDllFileName), Path.Combine(platformDir, nativeDllFileName));
+                foreach (var file in Directory.GetFiles(libraryPath, "*.dll"))
+                {
+                    File.Copy(file, Path.Combine(platformDir, Path.GetFileName(file)));
+                }
 
                 var (output, exitCode) = ProcessHelper.RunProcess(testAppExe, arguments: $@"{NativeDllName.Name} ""{platformDir}""", workingDirectory: tempDir);
 
