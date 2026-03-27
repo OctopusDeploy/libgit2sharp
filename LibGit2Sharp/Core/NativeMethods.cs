@@ -132,8 +132,24 @@ namespace LibGit2Sharp.Core
         [DllImport("libdl", EntryPoint = "dlopen")]
         private static extern IntPtr LoadUnixLibrary(string path, int flags);
 
-        [DllImport("kernel32", EntryPoint = "LoadLibrary")]
-        private static extern IntPtr LoadWindowsLibrary(string path);
+        [DllImport("kernel32", EntryPoint = "AddDllDirectory", CharSet = CharSet.Unicode)]
+        private static extern IntPtr AddDllDirectory(string path);
+
+        [DllImport("kernel32", EntryPoint = "LoadLibraryExW", CharSet = CharSet.Unicode)]
+        private static extern IntPtr LoadWindowsLibraryEx(string path, IntPtr hFile, uint flags);
+
+        private const uint LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000;
+
+        private static IntPtr LoadWindowsLibrary(string path)
+        {
+            var directory = Path.GetDirectoryName(path);
+            if (directory != null)
+            {
+                AddDllDirectory(directory);
+            }
+
+            return LoadWindowsLibraryEx(path, IntPtr.Zero, LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
+        }
 
         // Avoid inlining this method because otherwise mono's JITter may try
         // to load the library _before_ we've configured the path.
