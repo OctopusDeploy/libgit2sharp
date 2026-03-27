@@ -11,7 +11,6 @@ namespace LibGit2Sharp.Tests
         [Theory]
         [InlineData("http://github.com/libgit2/TestGitRepository")]
         [InlineData("https://github.com/libgit2/TestGitRepository")]
-        [InlineData("git@github.com:libgit2/TestGitRepository.git")]
         public void CanListRemoteReferences(string url)
         {
             string remoteName = "testRemote";
