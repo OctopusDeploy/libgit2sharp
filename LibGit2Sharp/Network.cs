@@ -79,7 +79,6 @@ namespace LibGit2Sharp
             return ListReferencesInternal(remote.Url, options);
         }
 
-
         /// <summary>
         /// List references in a <see cref="Remote"/> repository.
         /// <para>
@@ -191,9 +190,9 @@ namespace LibGit2Sharp
         {
             Ensure.ArgumentNotNull(url, "url");
 
-            var options = new ListRemoteOptions()
+            var options = new ListRemoteOptions
             {
-                ProxyOptions =  new ProxyOptions()
+                ProxyOptions = new ProxyOptions()
             };
 
             return ListReferencesInternal(url, options);

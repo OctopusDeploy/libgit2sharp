@@ -22,11 +22,11 @@ namespace LibGit2Sharp
         /// <summary>
         /// SSH key credentials sourced from files
         /// </summary>
-        SShKey = (1 << 2),
+        SshKey = (1 << 2),
 
         /// <summary>
-        /// SSH key credentials source from in memory keys
+        /// SSH key credentials sourced from in-memory keys
         /// </summary>
-        SSMemory = (1 << 3),
+        SshMemory = (1 << 3),
     }
 }

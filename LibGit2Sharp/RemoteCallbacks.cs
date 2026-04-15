@@ -299,12 +299,12 @@ namespace LibGit2Sharp
 
             if (credTypes.HasFlag(GitCredentialType.SshKey))
             {
-                types |= SupportedCredentialTypes.SShKey;
+                types |= SupportedCredentialTypes.SshKey;
             }
 
             if (credTypes.HasFlag(GitCredentialType.SshMemory))
             {
-                types |= SupportedCredentialTypes.SSMemory;
+                types |= SupportedCredentialTypes.SshMemory;
             }
 
             ptr = IntPtr.Zero;
