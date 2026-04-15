@@ -25,7 +25,7 @@ namespace LibGit2Sharp.Core
         public unsafe fixed byte HashSHA256[32];
 
         public int raw_type;
-        public char* hostkey;
+        public byte* hostkey;
         public UIntPtr hostkey_len;
     }
 }

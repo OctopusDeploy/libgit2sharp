@@ -16,7 +16,7 @@ namespace LibGit2Sharp.Ssh
              [MarshalAs(UnmanagedType.CustomMarshaler, MarshalCookie = UniqueId.UniqueIdentifier, MarshalTypeRef = typeof(StrictUtf8Marshaler))] string privatekey,
              [MarshalAs(UnmanagedType.CustomMarshaler, MarshalCookie = UniqueId.UniqueIdentifier, MarshalTypeRef = typeof(StrictUtf8Marshaler))] string passphrase);
 
-        [DllImport(libgit2)]
+        [DllImport(libgit2, CallingConvention = CallingConvention.Cdecl)]
         internal static extern int git_cred_ssh_key_memory_new(
               out IntPtr cred,
               [MarshalAs(UnmanagedType.CustomMarshaler, MarshalCookie = UniqueId.UniqueIdentifier, MarshalTypeRef = typeof(StrictUtf8Marshaler))] string username,
