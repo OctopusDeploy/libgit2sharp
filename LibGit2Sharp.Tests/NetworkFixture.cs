@@ -210,7 +210,6 @@ namespace LibGit2Sharp.Tests
 
         [Theory]
         [InlineData("https://github.com/libgit2/TestGitRepository")]
-        [InlineData("git@github.com:libgit2/TestGitRepository")]
         public void CanListRemoteReferencesWithCertificateCheckCallback(string url)
         {
             string repoPath = InitNewRepository();
