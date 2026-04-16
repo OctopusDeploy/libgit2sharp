@@ -26,6 +26,11 @@ namespace LibGit2Sharp
         public readonly byte[] HashSHA1;
 
         /// <summary>
+        /// The SHA256 hash of the host. Meaningful if <see cref="HasSHA256"/> is true
+        /// </summary>
+        public readonly byte[] HashSHA256;
+
+        /// <summary>
         /// True if we have the MD5 hostkey hash from the server
         /// </summary>
         public readonly bool HasMD5;
@@ -35,11 +40,17 @@ namespace LibGit2Sharp
         /// </summary>
         public readonly bool HasSHA1;
 
+        /// <summary>
+        /// True if we have the SHA256 hostkey hash from the server
+        /// </summary>
+        public readonly bool HasSHA256;
+
         internal unsafe CertificateSsh(git_certificate_ssh* cert)
         {
 
             HasMD5 = cert->type.HasFlag(GitCertificateSshType.MD5);
             HasSHA1 = cert->type.HasFlag(GitCertificateSshType.SHA1);
+            HasSHA256 = cert->type.HasFlag(GitCertificateSshType.SHA256);
 
             HashMD5 = new byte[16];
             for (var i = 0; i < HashMD5.Length; i++)
@@ -51,6 +62,12 @@ namespace LibGit2Sharp
             for (var i = 0; i < HashSHA1.Length; i++)
             {
                 HashSHA1[i] = cert->HashSHA1[i];
+            }
+
+            HashSHA256 = new byte[32];
+            for (var i = 0; i < HashSHA256.Length; i++)
+            {
+                HashSHA256[i] = cert->HashSHA256[i];
             }
         }
 
@@ -64,6 +81,10 @@ namespace LibGit2Sharp
             if (HasSHA1)
             {
                 sshCertType |= GitCertificateSshType.SHA1;
+            }
+            if (HasSHA256)
+            {
+                sshCertType |= GitCertificateSshType.SHA256;
             }
 
             var gitCert = new git_certificate_ssh()
@@ -85,6 +106,14 @@ namespace LibGit2Sharp
                 for (var i = 0; i < HashSHA1.Length; i++)
                 {
                     gitCert.HashSHA1[i] = p[i];
+                }
+            }
+
+            fixed (byte* p = &HashSHA256[0])
+            {
+                for (var i = 0; i < HashSHA256.Length; i++)
+                {
+                    gitCert.HashSHA256[i] = p[i];
                 }
             }
 

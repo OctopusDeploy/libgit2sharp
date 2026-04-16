@@ -724,6 +724,30 @@ namespace LibGit2Sharp.Tests
             }
         }
 
+        [Theory]
+        [InlineData("http://github.com/libgit2/TestGitRepository")]
+        [InlineData("https://github.com/libgit2/TestGitRepository")]
+        public void CanListRemoteReferencesWithListRemoteOptions(string url)
+        {
+            var options = new ListRemoteOptions
+            {
+                ProxyOptions = new ProxyOptions()
+            };
+
+            IEnumerable<Reference> references = Repository.ListRemoteReferences(url, options).ToList();
+
+            List<Tuple<string, string>> actualRefs = references.
+                Select(reference => new Tuple<string, string>(reference.CanonicalName, reference.ResolveToDirectReference().TargetIdentifier)).ToList();
+
+            Assert.Equal(TestRemoteRefs.ExpectedRemoteRefs.Count, actualRefs.Count);
+            Assert.True(references.Single(reference => reference.CanonicalName == "HEAD") is SymbolicReference);
+            for (int i = 0; i < TestRemoteRefs.ExpectedRemoteRefs.Count; i++)
+            {
+                Assert.Equal(TestRemoteRefs.ExpectedRemoteRefs[i].Item2, actualRefs[i].Item2);
+                Assert.Equal(TestRemoteRefs.ExpectedRemoteRefs[i].Item1, actualRefs[i].Item1);
+            }
+        }
+
         [Fact]
         public void CanListRemoteReferencesWithDetachedRemoteHead()
         {

@@ -22,7 +22,6 @@ namespace LibGit2Sharp.Tests
                 Remote remote = repo.Network.Remotes.Add(remoteName, url);
                 IList<Reference> references = repo.Network.ListReferences(remote).ToList();
 
-
                 foreach (var reference in references)
                 {
                     // None of those references point to an existing
@@ -128,6 +127,134 @@ namespace LibGit2Sharp.Tests
                 Remote remote = repo.Network.Remotes.Add(remoteName, Constants.PrivateRepoUrl);
 
                 var references = repo.Network.ListReferences(remote, Constants.PrivateRepoCredentials);
+
+                foreach (var reference in references)
+                {
+                    Assert.NotNull(reference);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("http://github.com/libgit2/TestGitRepository")]
+        [InlineData("https://github.com/libgit2/TestGitRepository")]
+        public void CanListRemoteReferencesWithListRemoteOptions(string url)
+        {
+            string remoteName = "testRemote";
+
+            string repoPath = InitNewRepository();
+
+            using (var repo = new Repository(repoPath))
+            {
+                Remote remote = repo.Network.Remotes.Add(remoteName, url);
+                var options = new ListRemoteOptions
+                {
+                    ProxyOptions = new ProxyOptions()
+                };
+
+                IList<Reference> references = repo.Network.ListReferences(remote, options).ToList();
+
+                foreach (var reference in references)
+                {
+                    Assert.Null(reference.ResolveToDirectReference().Target);
+                }
+
+                List<Tuple<string, string>> actualRefs = references.
+                    Select(directRef => new Tuple<string, string>(directRef.CanonicalName, directRef.ResolveToDirectReference()
+                        .TargetIdentifier)).ToList();
+
+                Assert.Equal(TestRemoteRefs.ExpectedRemoteRefs.Count, actualRefs.Count);
+                Assert.True(references.Single(reference => reference.CanonicalName == "HEAD") is SymbolicReference);
+                for (int i = 0; i < TestRemoteRefs.ExpectedRemoteRefs.Count; i++)
+                {
+                    Assert.Equal(TestRemoteRefs.ExpectedRemoteRefs[i].Item2, actualRefs[i].Item2);
+                    Assert.Equal(TestRemoteRefs.ExpectedRemoteRefs[i].Item1, actualRefs[i].Item1);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("http://github.com/libgit2/TestGitRepository")]
+        [InlineData("https://github.com/libgit2/TestGitRepository")]
+        public void CanListRemoteReferencesFromUrlWithListRemoteOptions(string url)
+        {
+            string repoPath = InitNewRepository();
+
+            using (var repo = new Repository(repoPath))
+            {
+                var options = new ListRemoteOptions
+                {
+                    ProxyOptions = new ProxyOptions()
+                };
+
+                IList<Reference> references = repo.Network.ListReferences(url, options).ToList();
+
+                foreach (var reference in references)
+                {
+                    Assert.Null(reference.ResolveToDirectReference().Target);
+                }
+
+                List<Tuple<string, string>> actualRefs = references.
+                    Select(directRef => new Tuple<string, string>(directRef.CanonicalName, directRef.ResolveToDirectReference()
+                        .TargetIdentifier)).ToList();
+
+                Assert.Equal(TestRemoteRefs.ExpectedRemoteRefs.Count, actualRefs.Count);
+                Assert.True(references.Single(reference => reference.CanonicalName == "HEAD") is SymbolicReference);
+                for (int i = 0; i < TestRemoteRefs.ExpectedRemoteRefs.Count; i++)
+                {
+                    Assert.Equal(TestRemoteRefs.ExpectedRemoteRefs[i].Item2, actualRefs[i].Item2);
+                    Assert.Equal(TestRemoteRefs.ExpectedRemoteRefs[i].Item1, actualRefs[i].Item1);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("https://github.com/libgit2/TestGitRepository")]
+        [InlineData("git@github.com:libgit2/TestGitRepository")]
+        public void CanListRemoteReferencesWithCertificateCheckCallback(string url)
+        {
+            string repoPath = InitNewRepository();
+
+            bool certificateCheckCalled = false;
+
+            using (var repo = new Repository(repoPath))
+            {
+                var options = new ListRemoteOptions
+                {
+                    CertificateCheck = (cert, valid, host) =>
+                    {
+                        certificateCheckCalled = true;
+                        return true;
+                    }
+                };
+
+                IList<Reference> references = repo.Network.ListReferences(url, options).ToList();
+
+                Assert.True(certificateCheckCalled);
+                Assert.NotEmpty(references);
+            }
+        }
+
+        [SkippableFact]
+        public void CanListRemoteReferencesWithCredentialsInListRemoteOptions()
+        {
+            InconclusiveIf(() => string.IsNullOrEmpty(Constants.PrivateRepoUrl),
+                "Populate Constants.PrivateRepo* to run this test");
+
+            string remoteName = "origin";
+
+            string repoPath = InitNewRepository();
+
+            using (var repo = new Repository(repoPath))
+            {
+                Remote remote = repo.Network.Remotes.Add(remoteName, Constants.PrivateRepoUrl);
+
+                var options = new ListRemoteOptions
+                {
+                    CredentialsProvider = Constants.PrivateRepoCredentials
+                };
+
+                var references = repo.Network.ListReferences(remote, options);
 
                 foreach (var reference in references)
                 {
