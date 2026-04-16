@@ -21,5 +21,7 @@ namespace LibGit2Sharp.Core
         private IntPtr padding; // TODO: add git_commit_create_cb
 
         public NativeMethods.commit_signing_callback signing_callback;
+
+        public IntPtr payload;
     }
 }
