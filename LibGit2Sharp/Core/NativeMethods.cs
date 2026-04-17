@@ -140,6 +140,8 @@ namespace LibGit2Sharp.Core
 
         private const uint LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000;
 
+        // Use AddDllDirectory + LoadLibraryEx so that transitive native dependencies
+        // (e.g. libssh2 -> libcrypto) in the same directory are resolved at load time.
         private static IntPtr LoadWindowsLibrary(string path)
         {
             var directory = Path.GetDirectoryName(path);
