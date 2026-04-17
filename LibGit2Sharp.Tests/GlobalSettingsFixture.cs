@@ -77,7 +77,8 @@ namespace LibGit2Sharp.Tests
 
                 var (output, exitCode) = ProcessHelper.RunProcess(testAppExe, arguments: $@"{NativeDllName.Name} ""{platformDir}""", workingDirectory: tempDir);
 
-                Assert.True(exitCode == 0, $"Test app exited with code {exitCode}. Output: {output}");
+                Assert.Empty(output);
+                Assert.Equal(0, exitCode);
             }
             finally
             {
