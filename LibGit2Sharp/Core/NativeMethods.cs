@@ -110,6 +110,20 @@ namespace LibGit2Sharp.Core
 
                     if (Directory.Exists(runtimesDirectory))
                     {
+                        // The default libgit2 binary is linked against OpenSSL 3. On hosts that have only libcrypto.so.1.1
+                        // fall back to the OpenSSL-1.1 variant shipped alongside it.
+                        if (!NativeLibrary.TryLoad("libcrypto.so.3", out _) && NativeLibrary.TryLoad("libcrypto.so.1.1", out _))
+                        {
+                            foreach (var runtimeFolder in Directory.GetDirectories(runtimesDirectory, $"*-{processorArchitecture}"))
+                            {
+                                string variantPath = Path.Combine(runtimeFolder, "native", $"lib{libraryName}-openssl1.1.so");
+                                if (NativeLibrary.TryLoad(variantPath, out handle))
+                                {
+                                    return handle;
+                                }
+                            }
+                        }
+
                         foreach (var runtimeFolder in Directory.GetDirectories(runtimesDirectory, $"*-{processorArchitecture}"))
                         {
                             string libPath = Path.Combine(runtimeFolder, "native", $"lib{libraryName}.so");
