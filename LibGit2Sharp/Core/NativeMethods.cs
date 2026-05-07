@@ -102,28 +102,39 @@ namespace LibGit2Sharp.Core
                 // libc/OpenSSL libraries. Try them out.
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    // The libraries are located at 'runtimes/<rid>/native/lib{libraryName}.so'
-                    // The <rid> ends with the processor architecture. e.g. fedora-x64.
                     string assemblyDirectory = Path.GetDirectoryName(AppContext.BaseDirectory);
                     string processorArchitecture = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
                     string runtimesDirectory = Path.Combine(assemblyDirectory, "runtimes");
 
-                    if (Directory.Exists(runtimesDirectory))
+                    // The default libgit2 binary is linked against OpenSSL 3. On hosts that have only
+                    // libcrypto.so.1.1 fall back to the OpenSSL-1.1 variant shipped alongside it. We probe
+                    // both layouts: flat (self-contained publish copies natives next to the assembly) and
+                    // 'runtimes/<rid>/native/' (framework-dependent / build output).
+                    if (!NativeLibrary.TryLoad("libcrypto.so.3", out _) && NativeLibrary.TryLoad("libcrypto.so.1.1", out _))
                     {
-                        // The default libgit2 binary is linked against OpenSSL 3. On hosts that have only libcrypto.so.1.1
-                        // fall back to the OpenSSL-1.1 variant shipped alongside it.
-                        if (!NativeLibrary.TryLoad("libcrypto.so.3", out _) && NativeLibrary.TryLoad("libcrypto.so.1.1", out _))
+                        string variantFile = $"lib{libraryName}-openssl1.1.so";
+
+                        string flatVariantPath = Path.Combine(assemblyDirectory, variantFile);
+                        if (NativeLibrary.TryLoad(flatVariantPath, out handle))
+                        {
+                            return handle;
+                        }
+
+                        if (Directory.Exists(runtimesDirectory))
                         {
                             foreach (var runtimeFolder in Directory.GetDirectories(runtimesDirectory, $"*-{processorArchitecture}"))
                             {
-                                string variantPath = Path.Combine(runtimeFolder, "native", $"lib{libraryName}-openssl1.1.so");
+                                string variantPath = Path.Combine(runtimeFolder, "native", variantFile);
                                 if (NativeLibrary.TryLoad(variantPath, out handle))
                                 {
                                     return handle;
                                 }
                             }
                         }
+                    }
 
+                    if (Directory.Exists(runtimesDirectory))
+                    {
                         foreach (var runtimeFolder in Directory.GetDirectories(runtimesDirectory, $"*-{processorArchitecture}"))
                         {
                             string libPath = Path.Combine(runtimeFolder, "native", $"lib{libraryName}.so");
