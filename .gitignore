@@ -37,6 +37,7 @@ _ReSharper*/
 *.swp
 *.DotSettings
 
+.idea/
 _NCrunch_LibGit2Sharp/
 artifacts/
 worktree.playlist

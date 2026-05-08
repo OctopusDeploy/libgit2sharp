@@ -38,5 +38,7 @@ namespace LibGit2Sharp.Core
         internal IntPtr payload;
 
         internal NativeMethods.url_resolve_callback resolve_url;
+
+        internal IntPtr update_refs;
     }
 }

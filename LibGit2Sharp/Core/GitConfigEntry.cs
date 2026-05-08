@@ -11,6 +11,5 @@ namespace LibGit2Sharp.Core
         public char* origin_path;
         public uint include_depth;
         public uint level;
-        public void* freePtr;
     }
 }

@@ -230,6 +230,7 @@ namespace LibGit2Sharp.Core
 
         public uint ContextLines;
         public uint InterhunkLines;
+        public uint OidType;
         public ushort IdAbbrev;
         public long MaxSize;
         public IntPtr OldPrefixString;
