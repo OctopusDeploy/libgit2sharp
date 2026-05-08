@@ -6,7 +6,7 @@ namespace LibGit2Sharp
     /// <summary>
     /// Class that holds SSH username with key credentials for remote repository access.
     /// </summary>
-    public sealed class SshUserKeyCredentials : Credentials
+    public sealed class SshKeyCredentials : Credentials
     {
         /// <summary>
         /// Callback to acquire a credential object.
@@ -18,11 +18,6 @@ namespace LibGit2Sharp
             if (Username == null)
             {
                 throw new InvalidOperationException("SshUserKeyCredentials contains a null Username.");
-            }
-
-            if (Passphrase == null)
-            {
-                throw new InvalidOperationException("SshUserKeyCredentials contains a null Passphrase.");
             }
 
             if (PrivateKey == null)
