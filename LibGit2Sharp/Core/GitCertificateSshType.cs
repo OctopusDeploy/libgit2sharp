@@ -7,5 +7,6 @@ namespace LibGit2Sharp.Core
     {
         MD5 = (1 << 0),
         SHA1 = (1 << 1),
+        SHA256 = (1 << 2),
     }
 }
