@@ -1,6 +1,6 @@
 # LibGit2Sharp
 
-[![CI](https://github.com/libgit2/libgit2sharp/actions/workflows/ci.yml/badge.svg)](https://github.com/libgit2/libgit2sharp/actions/workflows/ci.yml) 
+[![CI](https://github.com/libgit2/libgit2sharp/actions/workflows/ci.yml/badge.svg)](https://github.com/libgit2/libgit2sharp/actions/workflows/ci.yml)
 [![NuGet version (LibGit2Sharp)](https://img.shields.io/nuget/v/LibGit2Sharp.svg)](https://www.nuget.org/packages/LibGit2Sharp/)
 
 **LibGit2Sharp brings all the might and speed of [libgit2](http://libgit2.github.com/), a native Git implementation, to the managed world of .NET**
@@ -35,6 +35,25 @@ You can do a few things to optimize running unit tests on Windows:
 2. Configure your anti-virus software to ignore the `LibGit2TestPath` path.
 3. Install a RAM disk like [IMDisk](http://www.ltr-data.se/opencode.html/#ImDisk) and set `LibGit2TestPath` to use it.
     * Use `imdisk.exe -a -s 512M -m X: -p "/fs:fat /q /v:ramdisk /y"` to create a RAM disk. This command requires elevated privileges and can be placed into a scheduled task or run manually before you begin unit-testing.
+
+## Releasing
+
+Releases are triggered by pushing a git tag. The tag format is:
+
+```
+<upstream-version>-octopus.<n>
+```
+
+Where `<upstream-version>` is the version from the upstream libgit2sharp repo (e.g., `0.31.0`) and `<n>` is an incrementing number starting at 1. The incrementing number resets to 1 when the upstream version changes.
+
+For example, for upstream version `0.31.0`:
+
+```
+git tag 0.31.0-octopus.1
+git push origin 0.31.0-octopus.1
+```
+
+This triggers CI, which builds the assemblies, runs the tests, packs the `Octopus.LibGit2Sharp` NuGet package with the tag as its version, and pushes it to the configured feed.
 
 ## Authors
 
