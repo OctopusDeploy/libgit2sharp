@@ -136,6 +136,18 @@ namespace LibGit2Sharp.Tests
         }
 
         [Fact]
+        public void CanPushWithRemoteProgressCallback()
+        {
+            PushOptions options = new PushOptions()
+            {
+                OnPushStatusError = OnPushStatusError,
+                OnPushRemoteProgress = (progress) => { return true; },
+            };
+
+            AssertPush(repo => repo.Network.Push(repo.Network.Remotes["origin"], "HEAD", @"refs/heads/master", options));
+        }
+
+        [Fact]
         public void PushingABranchThatDoesNotTrackAnUpstreamBranchThrows()
         {
             Assert.Throws<LibGit2SharpException>(

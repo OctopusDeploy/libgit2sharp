@@ -656,7 +656,7 @@ namespace LibGit2Sharp
         /// <returns>The references in the remote repository.</returns>
         public static IEnumerable<Reference> ListRemoteReferences(string url)
         {
-            return ListRemoteReferences(url, null, new ProxyOptions());
+            return ListRemoteReferences(url, (ListRemoteOptions)null);
         }
 
         /// <summary>
@@ -667,7 +667,7 @@ namespace LibGit2Sharp
         /// <returns>The references in the remote repository.</returns>
         public static IEnumerable<Reference> ListRemoteReferences(string url, ProxyOptions proxyOptions)
         {
-            return ListRemoteReferences(url, null, proxyOptions);
+            return ListRemoteReferences(url, new ListRemoteOptions { ProxyOptions = proxyOptions });
         }
 
         /// <summary>
@@ -683,7 +683,7 @@ namespace LibGit2Sharp
         /// <returns>The references in the remote repository.</returns>
         public static IEnumerable<Reference> ListRemoteReferences(string url, CredentialsHandler credentialsProvider)
         {
-            return ListRemoteReferences(url, credentialsProvider, new ProxyOptions());
+            return ListRemoteReferences(url, new ListRemoteOptions { CredentialsProvider = credentialsProvider });
         }
 
         /// <summary>
@@ -700,22 +700,32 @@ namespace LibGit2Sharp
         /// <returns>The references in the remote repository.</returns>
         public static IEnumerable<Reference> ListRemoteReferences(string url, CredentialsHandler credentialsProvider, ProxyOptions proxyOptions)
         {
+            return ListRemoteReferences(url, new ListRemoteOptions
+            {
+                CredentialsProvider = credentialsProvider,
+                ProxyOptions = proxyOptions,
+            });
+        }
+
+        /// <summary>
+        /// Lists the Remote Repository References.
+        /// </summary>
+        /// <param name="url">The url to list from.</param>
+        /// <param name="listRemoteOptions">Options for connecting to the remote repository.</param>
+        /// <returns>The references in the remote repository.</returns>
+        public static IEnumerable<Reference> ListRemoteReferences(string url, ListRemoteOptions listRemoteOptions)
+        {
             Ensure.ArgumentNotNull(url, "url");
 
-            proxyOptions ??= new();
+            listRemoteOptions ??= new ListRemoteOptions();
+            var proxyOptions = listRemoteOptions.ProxyOptions ?? new ProxyOptions();
 
             using RepositoryHandle repositoryHandle = Proxy.git_repository_new();
             using RemoteHandle remoteHandle = Proxy.git_remote_create_anonymous(repositoryHandle, url);
             using var proxyOptionsWrapper = new GitProxyOptionsWrapper(proxyOptions.CreateGitProxyOptions());
 
-            var gitCallbacks = new GitRemoteCallbacks { version = 1 };
-
-            if (credentialsProvider != null)
-            {
-                var callbacks = new RemoteCallbacks(credentialsProvider);
-                gitCallbacks = callbacks.GenerateCallbacks();
-            }
-
+            var callbacks = new RemoteCallbacks(listRemoteOptions);
+            var gitCallbacks = callbacks.GenerateCallbacks();
             var gitProxyOptions = proxyOptionsWrapper.Options;
 
             Proxy.git_remote_connect(remoteHandle, GitDirection.Fetch, ref gitCallbacks, ref gitProxyOptions);

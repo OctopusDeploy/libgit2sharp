@@ -61,7 +61,6 @@ namespace LibGit2Sharp.Tests
         {
             Skip.IfNot(Platform.IsRunningOnNetFramework(), ".NET Framework only test.");
 
-            var nativeDllFileName = NativeDllName.Name + ".dll";
             var testDir = Path.GetDirectoryName(typeof(GlobalSettingsFixture).Assembly.Location);
             var testAppExe = Path.Combine(testDir, $"NativeLibraryLoadTestApp.{architecture}.exe");
             var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -71,7 +70,10 @@ namespace LibGit2Sharp.Tests
             try
             {
                 Directory.CreateDirectory(platformDir);
-                File.Copy(Path.Combine(libraryPath, nativeDllFileName), Path.Combine(platformDir, nativeDllFileName));
+                foreach (var file in Directory.GetFiles(libraryPath, "*.dll"))
+                {
+                    File.Copy(file, Path.Combine(platformDir, Path.GetFileName(file)));
+                }
 
                 var (output, exitCode) = ProcessHelper.RunProcess(testAppExe, arguments: $@"{NativeDllName.Name} ""{platformDir}""", workingDirectory: tempDir);
 
