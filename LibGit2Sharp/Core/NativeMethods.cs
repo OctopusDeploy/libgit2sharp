@@ -102,11 +102,36 @@ namespace LibGit2Sharp.Core
                 // libc/OpenSSL libraries. Try them out.
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    // The libraries are located at 'runtimes/<rid>/native/lib{libraryName}.so'
-                    // The <rid> ends with the processor architecture. e.g. fedora-x64.
                     string assemblyDirectory = Path.GetDirectoryName(AppContext.BaseDirectory);
                     string processorArchitecture = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
                     string runtimesDirectory = Path.Combine(assemblyDirectory, "runtimes");
+
+                    // The default libgit2 binary is linked against OpenSSL 3. On hosts that have only
+                    // libcrypto.so.1.1 fall back to the OpenSSL-1.1 variant shipped alongside it. We probe
+                    // both layouts: flat (self-contained publish copies natives next to the assembly) and
+                    // 'runtimes/<rid>/native/' (framework-dependent / build output).
+                    if (!NativeLibrary.TryLoad("libcrypto.so.3", out _) && NativeLibrary.TryLoad("libcrypto.so.1.1", out _))
+                    {
+                        string variantFile = $"lib{libraryName}-openssl1.1.so";
+
+                        string flatVariantPath = Path.Combine(assemblyDirectory, variantFile);
+                        if (NativeLibrary.TryLoad(flatVariantPath, out handle))
+                        {
+                            return handle;
+                        }
+
+                        if (Directory.Exists(runtimesDirectory))
+                        {
+                            foreach (var runtimeFolder in Directory.GetDirectories(runtimesDirectory, $"*-{processorArchitecture}"))
+                            {
+                                string variantPath = Path.Combine(runtimeFolder, "native", variantFile);
+                                if (NativeLibrary.TryLoad(variantPath, out handle))
+                                {
+                                    return handle;
+                                }
+                            }
+                        }
+                    }
 
                     if (Directory.Exists(runtimesDirectory))
                     {
@@ -132,8 +157,26 @@ namespace LibGit2Sharp.Core
         [DllImport("libdl", EntryPoint = "dlopen")]
         private static extern IntPtr LoadUnixLibrary(string path, int flags);
 
-        [DllImport("kernel32", EntryPoint = "LoadLibrary")]
-        private static extern IntPtr LoadWindowsLibrary(string path);
+        [DllImport("kernel32", EntryPoint = "AddDllDirectory", CharSet = CharSet.Unicode)]
+        private static extern IntPtr AddDllDirectory(string path);
+
+        [DllImport("kernel32", EntryPoint = "LoadLibraryExW", CharSet = CharSet.Unicode)]
+        private static extern IntPtr LoadWindowsLibraryEx(string path, IntPtr hFile, uint flags);
+
+        private const uint LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000;
+
+        // Use AddDllDirectory + LoadLibraryEx so that transitive native dependencies
+        // (e.g. libssh2 -> libcrypto) in the same directory are resolved at load time.
+        private static IntPtr LoadWindowsLibrary(string path)
+        {
+            var directory = Path.GetDirectoryName(path);
+            if (directory != null)
+            {
+                AddDllDirectory(directory);
+            }
+
+            return LoadWindowsLibraryEx(path, IntPtr.Zero, LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
+        }
 
         // Avoid inlining this method because otherwise mono's JITter may try
         // to load the library _before_ we've configured the path.

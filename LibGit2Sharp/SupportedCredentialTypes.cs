@@ -18,5 +18,15 @@ namespace LibGit2Sharp
         /// Ask Windows to provide its default credentials for the current user (e.g. NTLM)
         /// </summary>
         Default = (1 << 1),
+
+        /// <summary>
+        /// SSH key credentials sourced from files
+        /// </summary>
+        SshKey = (1 << 2),
+
+        /// <summary>
+        /// SSH key credentials sourced from in-memory keys
+        /// </summary>
+        SshMemory = (1 << 3),
     }
 }
