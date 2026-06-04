@@ -22,16 +22,23 @@ jobs:
               uses: actions/setup-dotnet@v5
               with:
                   dotnet-version: 9.0.x
-            - name: Compute version suffix for branch builds
+            - name: Compute version override for branch builds
               if: ${{ !startsWith(github.ref, 'refs/tags/') }}
               id: version
               run: |
+                  # Latest release tag matching the convention <version>-octopus.<n>
+                  LATEST=$(git tag --list --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+-octopus\.[0-9]+$' | head -n 1)
+                  if [ -z "$LATEST" ]; then
+                    echo "::error::No release tag matching <version>-octopus.<n> found"
+                    exit 1
+                  fi
                   # Sanitize branch name: lowercase, replace non-alphanumeric with hyphen, trim to 20 chars
                   BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
                   SAFE_BRANCH=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-20)
-                  echo "override=${SAFE_BRANCH}.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+                  # Join with '.' (not '-') so branch/run land as separate prerelease IDs, keeping ordering correct vs the next octopus.<n+1>
+                  echo "override=${LATEST}.${SAFE_BRANCH}.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
             - name: Build
-              run: dotnet build LibGit2Sharp.sln --configuration Release ${{ steps.version.outputs.override && format('/p:MinVerDefaultPreReleaseIdentifiers="{0}"', steps.version.outputs.override) || '' }}
+              run: dotnet build LibGit2Sharp.sln --configuration Release ${{ steps.version.outputs.override && format('/p:MinVerVersionOverride={0}', steps.version.outputs.override) || '' }}
             - name: Upload packages
               uses: actions/upload-artifact@v7
               with:
