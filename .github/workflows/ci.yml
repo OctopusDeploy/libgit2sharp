@@ -150,7 +150,7 @@ jobs:
               shell: bash
               run: dotnet nuget add source "$GITHUB_WORKSPACE/staging" --name local-build
             - name: Run SSH validation
-              shell: bash
+              shell: pwsh
               run: dotnet run --project SshCloneTestApp -c Release "/p:LibGit2SharpVersion=${{ steps.pkg.outputs.version }}"
 
     nuget-push:
