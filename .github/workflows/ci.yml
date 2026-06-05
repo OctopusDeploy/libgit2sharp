@@ -113,6 +113,46 @@ jobs:
                   test_command="dotnet test LibGit2Sharp.sln --configuration Release -p:TargetFrameworks=${{ matrix.tfm }} --logger "GitHubActions" -p:ExtraDefine=LEAKS_IDENTIFYING"
                   docker run -t --rm --platform linux/${{ matrix.arch }} -v "$PWD:/app" -w /app -e OPENSSL_ENABLE_SHA1_SIGNATURES=1 gittools/build-images:${{ matrix.distro }}-sdk-${{ matrix.sdk }} sh -c "$git_command && $test_command"
 
+    ssh-validation:
+        name: SSH Validation / ${{ matrix.os }}
+        needs: [build]
+        if: github.event_name != 'schedule'
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os: [windows-2022, ubuntu-22.04]
+            fail-fast: false
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+            - name: Install .NET SDK
+              uses: actions/setup-dotnet@v5
+              with:
+                  dotnet-version: 8.0.x
+            - name: Download package artifact
+              uses: actions/download-artifact@v8
+              with:
+                  name: NuGet packages
+                  path: staging
+            - name: Determine package version
+              id: pkg
+              shell: bash
+              run: |
+                  PKG=$(find staging -name 'Octopus.LibGit2Sharp.*.nupkg' ! -name '*NativeBinaries*' | head -n 1)
+                  if [ -z "$PKG" ]; then
+                    echo "::error::Octopus.LibGit2Sharp package not found under staging/"
+                    exit 1
+                  fi
+                  VERSION=$(basename "$PKG" | sed -E 's/^Octopus\.LibGit2Sharp\.([0-9].*)\.nupkg$/\1/')
+                  echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+                  echo "Found Octopus.LibGit2Sharp $VERSION"
+            - name: Add local package source
+              shell: bash
+              run: dotnet nuget add source "$GITHUB_WORKSPACE/staging" --name local-build
+            - name: Run SSH validation
+              shell: bash
+              run: dotnet run --project SshCloneTestApp -c Release "/p:LibGit2SharpVersion=${{ steps.pkg.outputs.version }}"
+
     nuget-push:
         name: Octopus NuGet Push
         needs: [build, test, test-linux]

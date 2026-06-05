@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>SshCloneTestApp</RootNamespace>
+    <!-- This harness validates the *published* package, so the committed state references
+         the package only. CI supplies the exact version: /p:LibGit2SharpVersion=<version>.
+         For a local run, pack the library and pass the same property. -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Octopus.LibGit2Sharp" Version="$(LibGit2SharpVersion)" />
+  </ItemGroup>
+
+</Project>
