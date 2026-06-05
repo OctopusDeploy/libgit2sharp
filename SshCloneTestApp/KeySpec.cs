@@ -26,6 +26,6 @@ public sealed record KeySpec(
     {
         new KeySpec("rsa-4096", "rsa", 4096, UsePemFormat: true, SupportedOnWindows: true),
         new KeySpec("ecdsa-nistp256", "ecdsa", 256, UsePemFormat: true, SupportedOnWindows: true),
-        new KeySpec("ed25519", "ed25519", null, UsePemFormat: false, SupportedOnWindows: false),
+        new KeySpec("ed25519", "ed25519", null, UsePemFormat: false, SupportedOnWindows: true),
     };
 }
