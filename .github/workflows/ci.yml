@@ -96,6 +96,7 @@ jobs:
                         debian.12,
                         fedora.41,
                         fedora.42,
+                        fedora.43,
                         ubuntu.22.04,
                         ubuntu.24.04,
                     ]
@@ -109,6 +110,15 @@ jobs:
                       runnerImage: ubuntu-22.04
                     - arch: arm64
                       runnerImage: ubuntu-22.04-arm
+                exclude:
+                    - distro: alpine.3.20
+                      sdk: "10.0"
+                    - distro: alpine.3.21
+                      sdk: "10.0"
+                    - distro: fedora.41
+                      sdk: "10.0"
+                    - distro: ubuntu.22.04
+                      sdk: "10.0"
             fail-fast: false
         steps:
             - name: Checkout
