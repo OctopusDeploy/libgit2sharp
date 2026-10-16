@@ -19,9 +19,9 @@ jobs:
               with:
                   fetch-depth: 0
             - name: Install .NET SDK
-              uses: actions/setup-dotnet@v5
+              uses: actions/setup-dotnet@v6
               with:
-                  dotnet-version: 9.0.x
+                  dotnet-version: 10.0.x
             - name: Compute version override for branch builds
               if: ${{ !startsWith(github.ref, 'refs/tags/') }}
               id: version
@@ -73,10 +73,10 @@ jobs:
               with:
                   fetch-depth: 0
             - name: Install .NET SDK
-              uses: actions/setup-dotnet@v5
+              uses: actions/setup-dotnet@v6
               with:
                   dotnet-version: |
-                      9.0.x
+                      10.0.x
                       8.0.x
             - name: Run ${{ matrix.tfm }} tests
               run: dotnet test LibGit2Sharp.sln --configuration Release --framework ${{ matrix.tfm }} --logger "GitHubActions" /p:ExtraDefine=LEAKS_IDENTIFYING
@@ -91,6 +91,7 @@ jobs:
                         alpine.3.20,
                         alpine.3.21,
                         alpine.3.22,
+                        alpine.3.23,
                         centos.stream.9,
                         debian.12,
                         fedora.41,
