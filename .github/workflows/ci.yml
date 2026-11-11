@@ -21,7 +21,7 @@ jobs:
       - name: Install .NET SDK
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 10.0.x
       - name: Compute version override for branch builds
         if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         id: version
@@ -53,21 +53,22 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        arch: [ x64 ]
-        os: [ windows-2022, windows-2025, macos-14, macos-15 ]
-        tfm: [ net472, net8.0, net9.0 ]
+        os: [ windows-2022, windows-2025, macos-15, macos-26 ]
+        tfm: [ net472, net8.0, net10.0 ]
         exclude:
-          - os: macos-14
-            tfm: net472
           - os: macos-15
             tfm: net472
+          - os: macos-26
+            tfm: net472
         include:
-          - arch: arm64
-            os: macos-14
-            tfm: net8.0
-          - arch: arm64
-            os: macos-14
-            tfm: net9.0
+          - os: windows-2022
+            arch: x64
+          - os: windows-2025
+            arch: x64
+          - os: macos-15
+            arch: arm64
+          - os: macos-26
+            arch: arm64
       fail-fast: false
     steps:
       - name: Checkout
@@ -78,7 +79,7 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: |
-            9.0.x
+            10.0.x
             8.0.x
       - name: Run ${{ matrix.tfm }} tests
         run: dotnet test LibGit2Sharp.sln --configuration Release --framework ${{ matrix.tfm }} --logger "GitHubActions" /p:ExtraDefine=LEAKS_IDENTIFYING
